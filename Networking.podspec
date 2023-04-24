@@ -12,7 +12,7 @@ Pod::Spec.new do |spec|
 	spec.ios.deployment_target = "13.0"
 	
 	spec.source       = { :git => "http://git.techvify.com.vn/internal/poc/iOS/Networking.git", :tag => spec.version.to_s }
-	spec.source_files = 'Networking/**/*.{swift,h}'
+	spec.source_files = 'Sources/Networking/**/*.{swift,h}'
 	
 	spec.dependency 'Common'
 	spec.dependency 'Alamofire'

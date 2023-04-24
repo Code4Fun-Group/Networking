@@ -39,7 +39,7 @@ extension TokenService: ITokenService {
 }
 
 extension DependencyValues {
-	var tokenService: TokenService {
+	public var tokenService: TokenService {
 		get { self[TokenService.self] }
 		set { self[TokenService.self] = newValue }
 	}

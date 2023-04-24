@@ -5,17 +5,18 @@
 //  Created by NamNH on 02/10/2021.
 //
 
+import Foundation
 import Alamofire
 
 public class NetworkingService {
 	let configurations: INetworkConfigurations
 	let httpHeaderHandler: INetworkHTTPHeaderHandler?
-	let responseHandler: INetworkHTTPResponseHandler?
+	let responseHandler: INetworkHTTPResponseHandler
 	let networkConnectionHandler: INetworkConnectionHandler
 	
 	let manager: Alamofire.Session = {
 		let configuration = URLSessionConfiguration.default
-
+		
 		return Alamofire.Session(
 			configuration: configuration,
 			serverTrustManager: ServerTrustManager(allHostsMustBeEvaluated: false,
@@ -24,9 +25,9 @@ public class NetworkingService {
 	}()
 	
 	public init(configurations: INetworkConfigurations,
-				  httpHeaderHandler: INetworkHTTPHeaderHandler? = nil,
-				  responseHandler: INetworkHTTPResponseHandler? = nil,
-				  networkConnectionHandler: INetworkConnectionHandler) {
+				httpHeaderHandler: INetworkHTTPHeaderHandler? = nil,
+				responseHandler: INetworkHTTPResponseHandler,
+				networkConnectionHandler: INetworkConnectionHandler) {
 		self.configurations = configurations
 		self.httpHeaderHandler = httpHeaderHandler
 		self.responseHandler = responseHandler
@@ -34,15 +35,25 @@ public class NetworkingService {
 	}
 }
 
+// MARK: - INetworkingService
 extension NetworkingService: INetworkingService {
-	public func request(_ request: URLRequest, type: NetworkRequestType, completion: @escaping (Result<Data?, Error>) -> Void) {
-		networkConnectionHandler.waitUntilCheckNetworkConnectionCompleted { result in
-			switch result {
-			case .success:
-				self.performFetch(request, type: type, completion: completion)
-			case .failure(let error):
-				completion(.failure(error))
-			}
+	public func request(_ request: URLRequest, type: NetworkRequestType) async throws -> Result<Data?, Error> {
+		let result = networkConnectionHandler.waitUntilCheckNetworkConnectionCompleted()
+		switch result {
+		case .success:
+			return try await performFetch(request, type: type)
+		case .failure(let error):
+			return .failure(error)
+		}
+	}
+	
+	public func download(_ request: URLRequest) async throws -> Result<URL?, Error> {
+		let result = networkConnectionHandler.waitUntilCheckNetworkConnectionCompleted()
+		switch result {
+		case .success:
+			return try await performDownload(request)
+		case .failure(let error):
+			return .failure(error)
 		}
 	}
 	
@@ -73,8 +84,9 @@ extension NetworkingService: INetworkingService {
 	}
 }
 
+// MARK: - Private function
 private extension NetworkingService {
-	func performFetch(_ request: URLRequest, type: NetworkRequestType, completion: @escaping (Result<Data?, Error>) -> Void) {
+	func performFetch(_ request: URLRequest, type: NetworkRequestType) async throws -> Result<Data?, Error> {
 		var customRequest = request
 		customRequest.cachePolicy = configurations.cachePolicy
 		customRequest.allHTTPHeaderFields = httpHeaderHandler?.construct(
@@ -83,18 +95,34 @@ private extension NetworkingService {
 		
 		switch type {
 		case .data:
-			manager.request(customRequest).responseData { response in
-				self.responseHandler?.handle(response: response, completion: completion)
-			}
+			let response = try await withCheckedThrowingContinuation({ continuation in
+				self.manager.request(customRequest).responseData { response in
+					continuation.resume(returning: response)
+				}
+			})
+			return await responseHandler.handle(response: response)
 		case .upload(let multipartForm):
-			AF.upload(multipartFormData: multipartForm, with: customRequest).responseData { response in
-				self.responseHandler?.handle(response: response, completion: completion)
-			}
-		case .download:
-			AF.download(customRequest).responseData { response in
-				// TODO: - Handle download
-				print(response)
-			}
+			let response = try await withCheckedThrowingContinuation({ continuation in
+				AF.upload(multipartFormData: multipartForm, with: customRequest).responseData { response in
+					continuation.resume(returning: response)
+				}
+			})
+			return await responseHandler.handle(response: response)
 		}
+	}
+	
+	func performDownload(_ request: URLRequest) async throws -> Result<URL?, Error> {
+		var customRequest = request
+		customRequest.cachePolicy = configurations.cachePolicy
+		customRequest.allHTTPHeaderFields = httpHeaderHandler?.construct(
+			from: request,
+			configurations: configurations)
+		
+		let response = try await withCheckedThrowingContinuation({ continuation in
+			AF.download(customRequest).responseData { response in
+				continuation.resume(returning: response)
+			}
+		})
+		return await responseHandler.handle(response: response)
 	}
 }

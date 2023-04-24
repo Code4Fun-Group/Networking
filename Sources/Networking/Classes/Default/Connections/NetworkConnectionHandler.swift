@@ -10,12 +10,12 @@ import Foundation
 public class NetworkConnectionHandler: INetworkConnectionHandler {
 	public init() {}
 	
-	public func waitUntilCheckNetworkConnectionCompleted(completion: @escaping (Result<Bool, Error>) -> Void) {
-		isNetworkAvailable() ? completion(.success(true)): completion(.failure(NetworkConnectionError.unavailable))
+	public func waitUntilCheckNetworkConnectionCompleted() -> Result<Bool, Error> {
+		isNetworkAvailable() ? .success(true): .failure(NetworkConnectionError.unavailable)
 	}
 }
 
-// MARK: - Private
+// MARK: - Private function
 private extension NetworkConnectionHandler {
 	func isNetworkAvailable() -> Bool {
 		let reachability = try? Reachability()

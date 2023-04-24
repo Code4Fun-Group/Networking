@@ -10,5 +10,4 @@ import Alamofire
 public enum NetworkRequestType {
 	case data
 	case upload(MultipartFormData)
-	case download
 }

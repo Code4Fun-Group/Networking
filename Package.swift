@@ -18,14 +18,16 @@ let package = Package(
     ],
     dependencies: [
 		.package(path: "../Common"),
-		.package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.6.1"))
-    ],
+		.package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.6.1")),
+		.package(url: "https://github.com/pointfreeco/swift-dependencies", from: "0.4.1")
+	],
     targets: [
         .target(
             name: "Networking",
             dependencies: [
 				.product(name: "Common", package: "Common"),
-				.product(name: "Alamofire", package: "Alamofire")
+				.product(name: "Alamofire", package: "Alamofire"),
+				.product(name: "Dependencies", package: "swift-dependencies"),
 			]),
         .testTarget(
             name: "NetworkingTests",

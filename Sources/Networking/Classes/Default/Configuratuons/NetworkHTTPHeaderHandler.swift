@@ -6,13 +6,10 @@
 //
 
 import Foundation
+import Dependencies
 
 public struct NetworkHTTPHeaderHandler {
-	let tokenService: ITokenService
-	
-	public init(tokenService: ITokenService) {
-		self.tokenService = tokenService
-	}
+	@Dependency(\.tokenService) var tokenService
 }
 
 extension NetworkHTTPHeaderHandler: INetworkHTTPHeaderHandler {

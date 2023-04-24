@@ -38,5 +38,5 @@ enum NetworkConnectionError: INetworkConnectionError {
 }
 
 public protocol INetworkConnectionHandler {
-	func waitUntilCheckNetworkConnectionCompleted(completion: @escaping (Result<Bool, Error>) -> Void)
+	func waitUntilCheckNetworkConnectionCompleted() -> Result<Bool, Error>
 }

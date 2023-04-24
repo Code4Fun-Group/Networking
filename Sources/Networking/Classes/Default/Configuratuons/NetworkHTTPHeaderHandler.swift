@@ -10,6 +10,8 @@ import Dependencies
 
 public struct NetworkHTTPHeaderHandler {
 	@Dependency(\.tokenService) var tokenService
+	
+	public init() {}
 }
 
 extension NetworkHTTPHeaderHandler: INetworkHTTPHeaderHandler {

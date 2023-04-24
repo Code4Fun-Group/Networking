@@ -9,17 +9,17 @@ import Foundation
 import Common
 import Dependencies
 
-struct TokenService {
+public struct TokenService {
 	let securedStoreService: ISecuredStoreService
 }
 
 extension TokenService: ITokenService {
-	mutating func clearToken() {
+	mutating public func clearToken() {
 		self.uid = nil
 		self.accessToken = nil
 	}
 	
-	var uid: String? {
+	public var uid: String? {
 		get {
 			return securedStoreService.get(key: "uid") as? String
 		}
@@ -28,7 +28,7 @@ extension TokenService: ITokenService {
 		}
 	}
 	
-	var accessToken: String? {
+	public var accessToken: String? {
 		get {
 			return securedStoreService.get(key: "accessToken") as? String
 		}
@@ -46,5 +46,5 @@ extension DependencyValues {
 }
 
 extension TokenService: DependencyKey {
-	static var liveValue = Self(securedStoreService: SecuredStoreService())
+	public static var liveValue = Self(securedStoreService: SecuredStoreService())
 }

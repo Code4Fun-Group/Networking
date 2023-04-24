@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol INetworkingServiceDataHandler {
-	func handle(jsonData: Data?, completion: (Result<Data, Error>) -> Void)
+	func handle(jsonData: Data?) async -> Result<Data, Error>
 }

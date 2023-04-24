@@ -15,19 +15,18 @@ public enum JSONDataHandlerError: Error {
 public struct JSONDataHandler: INetworkingServiceDataHandler {
 	public init() {}
 	
-	public func handle<T: Decodable>(jsonData: Data?, completion: (Result<T, Error>) -> Void) {
+	public func handle<T: Decodable>(jsonData: Data?) async -> Result<T, Error> {
 		guard let data = jsonData else {
-			completion(.failure(JSONDataHandlerError.emptyResponse))
-			return
+			return .failure(JSONDataHandlerError.emptyResponse)
 		}
 		
 		do {
 			let decoder = JSONDecoder()
 			let result = try decoder.decode(T.self, from: data)
-			completion(.success(result))
+			return .success(result)
 			
 		} catch {
-			completion(.failure(JSONDataHandlerError.serialization(responseError: error)))
+			return .failure(JSONDataHandlerError.serialization(responseError: error))
 		}
 	}
 }
